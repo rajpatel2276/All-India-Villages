@@ -4,18 +4,28 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// PREVENT CONNECTION EXHAUSTION (Singleton Pattern)
+let prisma;
+if (process.env.NODE_ENV === "production") {
+  prisma = new PrismaClient();
+} else {
+  if (!global.prisma) {
+    global.prisma = new PrismaClient();
+  }
+  prisma = global.prisma;
+}
 
 // 1. Basic Health Check
 app.get('/', (req, res) => {
   res.json({ message: "All India Villages API is Live!" });
 });
 
-// 2. Search Villages (The Core Requirement)
+// 2. Search Villages
 app.get('/v1/search', async (req, res) => {
   const { q } = req.query;
 
@@ -28,10 +38,10 @@ app.get('/v1/search', async (req, res) => {
       where: {
         name: {
           contains: q,
-          mode: 'insensitive', // Case-insensitive search
+          mode: 'insensitive',
         },
       },
-      take: 20, // Limit results for performance
+      take: 20,
       include: {
         sub_districts: {
           include: {
@@ -45,7 +55,6 @@ app.get('/v1/search', async (req, res) => {
       }
     });
 
-    // Format the response for the B2B Dropdown requirement
     const formattedResponse = villages.map(v => ({
       value: v.id,
       label: v.name,
@@ -59,6 +68,12 @@ app.get('/v1/search', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// REQUIRED FOR LOCAL TESTING
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+}
+
+// REQUIRED FOR VERCEL
+module.exports = app;
