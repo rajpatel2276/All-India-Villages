@@ -1,0 +1,9 @@
+node_modules/
+venv/
+.env
+dataset/
+*.xls
+*.xlsx
+*.ods
+dist/
+.next/
