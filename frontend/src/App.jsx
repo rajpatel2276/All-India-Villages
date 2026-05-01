@@ -14,7 +14,7 @@ function App() {
     if (val.length > 2) {
       setLoading(true);
       try {
-        const response = await axios.get(`http://localhost:3000/v1/search?q=${val}` || `${import.meta.env.VITE_API_URL}/v1/search?q=${val}`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/v1/search?q=${val}`);
         setResults(response.data);
       } catch (err) {
         console.error("Search failed", err);
