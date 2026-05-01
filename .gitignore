@@ -5,5 +5,3 @@ dataset/
 *.xls
 *.xlsx
 *.ods
-dist/
-.next/
